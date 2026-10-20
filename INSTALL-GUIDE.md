@@ -16,27 +16,76 @@ funcțiile AI să fie disponibile, deoarece Tunnel-ul și Ollama rămân acolo.
 Nu deschide portul Ollama `11434` către internet și nu configura port forwarding
 pentru el pe router.
 
-## 1. Instalează aplicația din imagine
+## 1. Completează formularul „Install Custom App”
 
-1. În TrueNAS SCALE/Community Edition, deschide **Apps** și alege instalarea
-   unei aplicații nișate / **Install via YAML** (numele opțiunii poate varia
-   în funcție de versiune).
-2. Copiază conținutul din [`docker-compose.yaml`](./docker-compose.yaml) în
-   editorul YAML. Imaginea folosită este:
+În TrueNAS, deschide **Apps → Discover → ix-app → Install**. În formularul din
+captură, completează câmpurile astfel:
 
-   ```text
-   ghcr.io/alex1612356356/graph-lab-truenas-image:latest
-   ```
+| Secțiune / câmp | Valoare |
+| --- | --- |
+| **Application Name** | `graph-lab` |
+| **Version** | Lasă versiunea oferită (`1.4.5` în captură). Aceasta este versiunea formularului/aplicației TrueNAS, nu tag-ul imaginii Docker. |
+| **Notes** | Opțional; poți lăsa gol. |
 
-3. Instalează aplicația și așteaptă să fie pornită. Nu trebuie să copiezi
-   manual fișiere web pe TrueNAS și nici să configurezi volume.
-4. Dintr-un dispozitiv din aceeași rețea, deschide
-   `http://IP-TRUENAS:30080` și verifică dacă se încarcă Graph Lab. Înlocuiește
-   `IP-TRUENAS` cu adresa locală a NAS-ului.
+Deschide apoi secțiunile din formular și configurează:
 
-Dacă portul `30080` este deja ocupat, alege alt port liber în partea stângă a
-mapării `ports` din YAML și folosește acel port în pașii următori. Lasă portul
-din dreapta (`80`) neschimbat.
+### Image Configuration
+
+| Câmp | Valoare |
+| --- | --- |
+| **Repository** / **Image repository** | `ghcr.io/alex1612356356/graph-lab-truenas-image` |
+| **Tag** | `latest` |
+| **Pull Policy** | `Always`, dacă este disponibil; altfel lasă valoarea implicită. |
+
+Tag-ul `latest` este public, deci nu trebuie să adaugi acreditări sau să te
+autentifici în GitHub Container Registry.
+
+### Container Configuration
+
+Lasă **Entrypoint**, **Command** și variabilele de mediu necompletate/la
+valorile implicite. Imaginea pornește singură Nginx pe portul `80`.
+
+### Security Context Configuration
+
+Păstrează valorile implicite. Nu activa **Privileged** și nu adăuga capabilități
+speciale.
+
+### Network Configuration
+
+Adaugă o regulă de publicare a portului containerului:
+
+| Câmp | Valoare |
+| --- | --- |
+| **Container Port** | `80` |
+| **Host Port** / **Node Port** | `30080` |
+| **Protocol** | `TCP` |
+| **Port Binding** | Activat, dacă formularul afișează această opțiune. |
+
+Dacă formularul are câmpurile **Host IP** sau **Bind Address**, lasă-le
+necompletate/implicit pentru a permite accesul din rețeaua locală. Dacă
+`30080` este ocupat, folosește alt port liber pentru **Host Port** și reține
+portul ales.
+
+### Portal Configuration
+
+Opțional, activează portalul pentru aplicație și setează protocolul `HTTP` și
+portul `30080` (sau portul Host ales mai sus). Portalul este doar o scurtătură
+din interfața TrueNAS; publicarea portului din **Network Configuration** este
+cea care face serviciul accesibil.
+
+### Storage Configuration
+
+Nu adăuga volume sau mount-uri. Fișierele site-ului și configurarea Nginx sunt
+deja incluse în imagine.
+
+Salvează formularul cu **Install** și așteaptă până când aplicația este
+pornită. Dintr-un dispozitiv din aceeași rețea, deschide
+`http://IP-TRUENAS:30080` (sau portul Host ales) și verifică dacă se încarcă
+Graph Lab. Înlocuiește `IP-TRUENAS` cu adresa locală a NAS-ului.
+
+> Dacă preferi instalarea prin YAML în locul formularului, folosește
+> [`docker-compose.yaml`](./docker-compose.yaml). Nu lipi Compose YAML în
+> câmpurile formularului **Install Custom App**.
 
 ## 2. Actualizează ruta site-ului din Cloudflare Tunnel
 
