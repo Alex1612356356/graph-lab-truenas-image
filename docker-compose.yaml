@@ -1,0 +1,7 @@
+services:
+  graph-lab:
+    image: ghcr.io/alex1612356356/graph-lab-truenas-image:latest
+    container_name: graph-lab
+    restart: unless-stopped
+    ports:
+      - "30080:80"
